@@ -255,9 +255,29 @@ public class mobilelight extends JavaPlugin implements Listener {
         Location loc = player.getLocation();
         // 获取玩家背后的位置（根据玩家朝向）
         double distance = -1.0; // 火把距离玩家的距离（负数表示在背后）
-        double yaw = Math.toRadians(loc.getYaw());
-        double x = loc.getX() - Math.sin(yaw) * distance;
-        double z = loc.getZ() + Math.cos(yaw) * distance;
+        
+        // 将玩家朝向转换为四个主要方向（0=南, 90=西, 180=北, 270=东）
+        double yaw = loc.getYaw();
+        while (yaw < 0) yaw += 360;
+        while (yaw >= 360) yaw -= 360;
+        
+        // 将朝向转换为最近的90度角（确保只有四个主要方向）
+        double snapYaw = Math.round(yaw / 90.0) * 90.0;
+        
+        // 根据朝向计算位置
+        double x = loc.getX();
+        double z = loc.getZ();
+        
+        if (snapYaw == 0 || snapYaw == 360) { // 南
+            z += distance;
+        } else if (snapYaw == 90) { // 西
+            x += distance;
+        } else if (snapYaw == 180) { // 北
+            z -= distance;
+        } else if (snapYaw == 270) { // 东
+            x -= distance;
+        }
+        
         return new Location(loc.getWorld(), x, loc.getY(), z);
     }
 
