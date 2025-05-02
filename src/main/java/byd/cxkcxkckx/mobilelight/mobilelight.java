@@ -268,12 +268,12 @@ public class mobilelight extends JavaPlugin implements Listener {
         if (yaw > 45 && yaw <= 135) {
             snapYaw = 270;
         }
-        // 如果朝向在135度到225度之间，使用0度（南）
-        else if (yaw > 135 && yaw <= 225) {
+        // 如果朝向在135度到180度之间，或者-180度到-135度之间，使用0度（南）
+        else if ((yaw > 135 && yaw <= 180) || (yaw >= -180 && yaw <= -135)) {
             snapYaw = 0;
         }
-        // 如果朝向在225度到315度之间，使用90度（西）
-        else if (yaw > 225 && yaw <= 315) {
+        // 如果朝向在-135度到-45度之间，使用90度（西）
+        else if (yaw > -135 && yaw <= -45) {
             snapYaw = 90;
         }
         // 其他情况使用180度（北）
@@ -376,11 +376,17 @@ public class mobilelight extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
-        if (isLegacyClient(event.getPlayer())) {
-            updateTorchPosition(event.getPlayer());
-        } else {
-            checkAndUpdateLight(event.getPlayer());
-        }
+        final Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+            @Override
+            public void run() {
+                if (isLegacyClient(player)) {
+                    updateTorchPosition(player);
+                } else {
+                    checkAndUpdateLight(player);
+                }
+            }
+        }, 10L); // 10 ticks = 0.5秒
     }
 
     @EventHandler
