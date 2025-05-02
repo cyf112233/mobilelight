@@ -264,6 +264,23 @@ public class mobilelight extends JavaPlugin implements Listener {
         // 将朝向转换为最近的90度角（确保只有四个主要方向）
         double snapYaw = Math.round(yaw / 90.0) * 90.0;
         
+        // 如果朝向在45度到135度之间，使用270度（东）
+        if (yaw > 45 && yaw <= 135) {
+            snapYaw = 270;
+        }
+        // 如果朝向在135度到225度之间，使用0度（南）
+        else if (yaw > 135 && yaw <= 225) {
+            snapYaw = 0;
+        }
+        // 如果朝向在225度到315度之间，使用90度（西）
+        else if (yaw > 225 && yaw <= 315) {
+            snapYaw = 90;
+        }
+        // 其他情况使用180度（北）
+        else {
+            snapYaw = 180;
+        }
+        
         // 根据朝向计算位置
         double x = loc.getX();
         double z = loc.getZ();
