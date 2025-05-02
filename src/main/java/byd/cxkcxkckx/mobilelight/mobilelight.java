@@ -268,17 +268,17 @@ public class mobilelight extends JavaPlugin implements Listener {
         if (yaw > 45 && yaw <= 135) {
             snapYaw = 270;
         }
-        // 如果朝向在135度到180度之间，或者-180度到-135度之间，使用0度（南）
+        // 如果朝向在135度到180度之间，或者-180度到-135度之间，使用180度（北）
         else if ((yaw > 135 && yaw <= 180) || (yaw >= -180 && yaw <= -135)) {
-            snapYaw = 0;
+            snapYaw = 180;
         }
         // 如果朝向在-135度到-45度之间，使用90度（西）
         else if (yaw > -135 && yaw <= -45) {
             snapYaw = 90;
         }
-        // 其他情况使用180度（北）
+        // 其他情况使用0度（南）
         else {
-            snapYaw = 180;
+            snapYaw = 0;
         }
         
         // 根据朝向计算位置
