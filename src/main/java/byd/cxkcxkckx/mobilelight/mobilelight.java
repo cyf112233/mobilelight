@@ -254,7 +254,7 @@ public class mobilelight extends JavaPlugin implements Listener {
     private Location getTorchLocation(Player player) {
         Location loc = player.getLocation();
         // 获取玩家背后的位置（根据玩家朝向）
-        double distance = -1.0; // 火把距离玩家的距离（负数表示在背后）
+        double distance = 1.0; // 火把距离玩家的距离（负数表示在背后）
         
         // 将玩家朝向转换为四个主要方向（0=南, 90=西, 180=北, 270=东）
         double yaw = loc.getYaw();
@@ -266,15 +266,15 @@ public class mobilelight extends JavaPlugin implements Listener {
         
         // 如果朝向在45度到135度之间，使用270度（东）
         if (yaw > 45 && yaw <= 135) {
-            snapYaw = 270;
+            snapYaw = 90;
         }
         // 如果朝向在135度到180度之间，或者-180度到-135度之间，使用180度（北）
         else if ((yaw > 135 && yaw <= 180) || (yaw >= -180 && yaw <= -135)) {
             snapYaw = 180;
         }
-        // 如果朝向在-135度到-45度之间，使用-90度（西）
+        // 如果朝向在-135度到-45度之间，使用90度（西）
         else if (yaw > -135 && yaw <= -45) {
-            snapYaw = -90;
+            snapYaw = 270;
         }
         // 其他情况使用0度（南）
         else {
@@ -285,11 +285,11 @@ public class mobilelight extends JavaPlugin implements Listener {
         double x = loc.getX();
         double z = loc.getZ();
         
-        if (snapYaw == 0 || snapYaw == 360) { // 南
+        if (snapYaw == 180) { // 南
             z += distance;
         } else if (snapYaw == 90) { // 西
             x += distance;
-        } else if (snapYaw == 180) { // 北
+        } else if (snapYaw == 0) { // 北
             z -= distance;
         } else if (snapYaw == 270) { // 东
             x -= distance;
