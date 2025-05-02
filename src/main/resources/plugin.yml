@@ -1,0 +1,8 @@
+name: MobileLight
+version: ${version}
+main: byd.cxkcxkckx.mobilelight.mobilelight
+api-version: 1.20
+depend: [  ]
+softdepend: [ PlaceholderAPI, ViaVersion ]
+authors: [ cxkcxkckx ]
+description: 一个让玩家手持指定物品时产生移动光源的插件
