@@ -7,89 +7,35 @@
 # 移动光源插件逻辑流程
 
 ```mermaid
-flowchart TD
-    %% 主流程
-    Start[插件启动] --> LoadConfig[加载配置文件]
-    LoadConfig --> InitDebug{调试模式?}
-    InitDebug -->|是| DebugOn[启用调试]
-    InitDebug -->|否| DebugOff[禁用调试]
-    LoadConfig --> LoadItems[加载光源物品列表]
+sequenceDiagram
+    participant 玩家 as 玩家
+    participant 插件 as 插件
+    participant 世界 as 世界
     
-    %% 事件处理
-    PlayerEvent[玩家事件] --> EventType{事件类型}
-    EventType -->|移动| MoveEvent[移动事件]
-    EventType -->|交互| InteractEvent[交互事件]
-    EventType -->|切换物品| SwapEvent[切换物品事件]
-    EventType -->|物品栏操作| InvEvent[物品栏操作事件]
-    EventType -->|切换手持物品| HeldEvent[切换手持物品事件]
-    EventType -->|退出| QuitEvent[退出事件]
+    玩家->>+插件: 触发事件（移动/交互/切换物品）
+    插件->>插件: 检查物品栏（主手/副手/装备）
     
-    %% 光源检查
-    MoveEvent --> CheckLight[检查光源状态]
-    InteractEvent --> CheckLight
-    SwapEvent --> CheckLight
-    InvEvent --> CheckLight
-    HeldEvent --> CheckLight
-    QuitEvent --> CleanLight[清理光源]
+    alt 持有光源物品
+        插件->>插件: 获取玩家客户端版本
+        alt 老版本客户端（≤1.16）
+            插件->>插件: 计算背后坐标
+            插件->>世界: sendBlockChange(TORCH)
+            世界-->>玩家: 显示火把特效
+        else 新版本客户端（≥1.17）
+            插件->>插件: 获取当前位置
+            插件->>世界: sendBlockChange(LIGHT)
+            世界-->>玩家: 显示光源特效
+        end
+        插件->>插件: 记录新位置
+    else 未持有光源物品
+        插件->>插件: 检查旧位置记录
+        alt 存在旧光源
+            插件->>世界: sendBlockChange(原始方块)
+            世界-->>玩家: 恢复原状
+            插件->>插件: 清除位置记录
+        end
+    end
     
-    %% 物品检测
-    CheckLight --> HasItem{持有光源物品?}
-    HasItem -->|否| RemoveLight[移除光源]
-    HasItem -->|是| UpdateLight[更新光源]
-    
-    %% 物品检查
-    HasItem --> CheckMain{主手?}
-    CheckMain -->|是| HasLight[有光源]
-    CheckMain -->|否| CheckOff{副手?}
-    CheckOff -->|是| HasLight
-    CheckOff -->|否| CheckArmor{装备栏?}
-    CheckArmor -->|头盔| IsLight{是光源?}
-    CheckArmor -->|胸甲| IsLight
-    CheckArmor -->|护腿| IsLight
-    CheckArmor -->|靴子| IsLight
-    IsLight -->|是| HasLight
-    IsLight -->|否| NoLight[无光源]
-    
-    %% 光源更新
-    UpdateLight --> CheckVersion{玩家版本?}
-    CheckVersion -->|1.16及以下| PlaceTorch[放置火把]
-    CheckVersion -->|1.17及以上| PlaceLight[放置光源方块]
-    
-    PlaceTorch --> GetTorchPos[获取火把位置]
-    GetTorchPos --> BehindPlayer[玩家背后1格]
-    BehindPlayer --> SendFakeTorch[发送假火把方块]
-    
-    PlaceLight --> PlayerPos[玩家位置]
-    PlayerPos --> SendFakeLight[发送假光源方块]
-    
-    %% 假方块处理
-    SendFakeTorch --> StorePos[存储位置]
-    SendFakeLight --> StorePos
-    
-    %% 数据存储
-    StorePos --> Map[Map存储]
-    Map --> UUID[玩家UUID]
-    Map --> Loc[位置信息]
-    Loc --> X[X坐标]
-    Loc --> Y[Y坐标]
-    Loc --> Z[Z坐标]
-    
-    %% 调试输出
-    DebugOn --> Log[调试日志]
-    Log --> LogPos[位置日志]
-    Log --> LogItem[物品日志]
-    Log --> LogBlock[方块日志]
-    Log --> LogVersion[版本日志]
-    
-    %% 样式
-    classDef event fill:#f9f,stroke:#333,stroke-width:2px
-    classDef process fill:#bbf,stroke:#333,stroke-width:2px
-    classDef decision fill:#fbb,stroke:#333,stroke-width:2px
-    classDef data fill:#bfb,stroke:#333,stroke-width:2px
-    
-    class PlayerEvent,EventType,MoveEvent,InteractEvent,SwapEvent,InvEvent,HeldEvent,QuitEvent event
-    class LoadConfig,LoadItems,CheckLight,GetTorchPos,PlayerPos,SendFakeTorch,SendFakeLight,RemoveLight process
-    class InitDebug,EventType,HasItem,CheckMain,CheckOff,CheckArmor,IsLight,CheckVersion decision
-    class Map,UUID,Loc,X,Y,Z data
+    插件-->>-玩家: 完成更新
 ```
 
