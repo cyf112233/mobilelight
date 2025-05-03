@@ -87,26 +87,41 @@ public class mobilelight extends JavaPlugin implements Listener {
     }
 
     private void sendFakeLightBlock(Player player, Location location) {
-        // 获取玩家所在区块的所有玩家
+        // 获取玩家所在64格半径内的所有玩家
         for (Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
             if (nearbyPlayer.getWorld().equals(location.getWorld()) && 
                 nearbyPlayer.getLocation().distance(location) <= 64) {
-                // 根据观看者的版本发送不同的方块
-                if (isLegacyClient(nearbyPlayer)) {
-                    // 老版本玩家看到火把
+                // 1. 先检查服务端版本
+                if (isLegacyVersion) {
+                    // 1.1 如果是1.16及以下的服务端，所有玩家都看到火把
                     nearbyPlayer.sendBlockChange(location, Material.TORCH.createBlockData());
-                    debugLog("向老版本玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新");
+                    debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新（服务端版本<1.17）");
                 } else {
-                    // 新版本玩家看到光源方块
-                    nearbyPlayer.sendBlockChange(location, Material.LIGHT.createBlockData());
-                    debugLog("向新版本玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新");
+                    // 1.2 如果是1.17及以上的服务端
+                    Plugin viaVersion = getServer().getPluginManager().getPlugin("ViaVersion");
+                    if (viaVersion == null || !viaVersion.isEnabled()) {
+                        // 1.2.1 如果没有安装ViaVersion，所有玩家都看到光源方块
+                        nearbyPlayer.sendBlockChange(location, Material.LIGHT.createBlockData());
+                        debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新（服务端版本>=1.17，无Via）");
+                    } else {
+                        // 1.2.2 如果安装了ViaVersion，根据玩家版本发送不同的方块
+                        if (isLegacyClient(nearbyPlayer)) {
+                            // 老版本玩家看到火把
+                            nearbyPlayer.sendBlockChange(location, Material.TORCH.createBlockData());
+                            debugLog("向老版本玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新");
+                        } else {
+                            // 新版本玩家看到光源方块
+                            nearbyPlayer.sendBlockChange(location, Material.LIGHT.createBlockData());
+                            debugLog("向新版本玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新");
+                        }
+                    }
                 }
             }
         }
     }
 
     private void removeFakeLightBlock(Player player, Location location) {
-        // 获取玩家所在区块的所有玩家
+        // 获取玩家所在64格半径内的所有玩家
         for (Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
             if (nearbyPlayer.getWorld().equals(location.getWorld()) && 
                 nearbyPlayer.getLocation().distance(location) <= 64) {
@@ -309,13 +324,71 @@ public class mobilelight extends JavaPlugin implements Listener {
         if (isLegacyClient(player)) {
             // 对于1.16及以下的玩家，显示火把在背后一格
             torchLoc = getTorchLocation(player);
-            // 使用sendBlockChange发送假火把方块
-            player.sendBlockChange(torchLoc, Material.TORCH.createBlockData());
+            // 获取玩家所在64格半径内的所有玩家
+            for (Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
+                if (nearbyPlayer.getWorld().equals(torchLoc.getWorld()) && 
+                    nearbyPlayer.getLocation().distance(torchLoc) <= 64) {
+                    // 1. 先检查服务端版本
+                    if (isLegacyVersion) {
+                        // 1.1 如果是1.16及以下的服务端，所有玩家都看到火把
+                        nearbyPlayer.sendBlockChange(torchLoc, Material.TORCH.createBlockData());
+                        debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新（服务端版本<1.17）");
+                    } else {
+                        // 1.2 如果是1.17及以上的服务端
+                        Plugin viaVersion = getServer().getPluginManager().getPlugin("ViaVersion");
+                        if (viaVersion == null || !viaVersion.isEnabled()) {
+                            // 1.2.1 如果没有安装ViaVersion，所有玩家都看到光源方块
+                            nearbyPlayer.sendBlockChange(torchLoc, Material.LIGHT.createBlockData());
+                            debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新（服务端版本>=1.17，无Via）");
+                        } else {
+                            // 1.2.2 如果安装了ViaVersion，根据玩家版本发送不同的方块
+                            if (isLegacyClient(nearbyPlayer)) {
+                                // 老版本玩家看到火把
+                                nearbyPlayer.sendBlockChange(torchLoc, Material.TORCH.createBlockData());
+                                debugLog("向老版本玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新");
+                            } else {
+                                // 新版本玩家看到光源方块
+                                nearbyPlayer.sendBlockChange(torchLoc, Material.LIGHT.createBlockData());
+                                debugLog("向新版本玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新");
+                            }
+                        }
+                    }
+                }
+            }
         } else {
             // 对于1.17及以上的玩家，显示光源方块在玩家位置
             torchLoc = player.getLocation();
-            // 使用sendBlockChange发送假光源方块
-            player.sendBlockChange(torchLoc, Material.LIGHT.createBlockData());
+            // 获取玩家所在64格半径内的所有玩家
+            for (Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
+                if (nearbyPlayer.getWorld().equals(torchLoc.getWorld()) && 
+                    nearbyPlayer.getLocation().distance(torchLoc) <= 64) {
+                    // 1. 先检查服务端版本
+                    if (isLegacyVersion) {
+                        // 1.1 如果是1.16及以下的服务端，所有玩家都看到火把
+                        nearbyPlayer.sendBlockChange(torchLoc, Material.TORCH.createBlockData());
+                        debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新（服务端版本<1.17）");
+                    } else {
+                        // 1.2 如果是1.17及以上的服务端
+                        Plugin viaVersion = getServer().getPluginManager().getPlugin("ViaVersion");
+                        if (viaVersion == null || !viaVersion.isEnabled()) {
+                            // 1.2.1 如果没有安装ViaVersion，所有玩家都看到光源方块
+                            nearbyPlayer.sendBlockChange(torchLoc, Material.LIGHT.createBlockData());
+                            debugLog("向玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新（服务端版本>=1.17，无Via）");
+                        } else {
+                            // 1.2.2 如果安装了ViaVersion，根据玩家版本发送不同的方块
+                            if (isLegacyClient(nearbyPlayer)) {
+                                // 老版本玩家看到火把
+                                nearbyPlayer.sendBlockChange(torchLoc, Material.TORCH.createBlockData());
+                                debugLog("向老版本玩家 " + nearbyPlayer.getName() + " 发送假火把方块更新");
+                            } else {
+                                // 新版本玩家看到光源方块
+                                nearbyPlayer.sendBlockChange(torchLoc, Material.LIGHT.createBlockData());
+                                debugLog("向新版本玩家 " + nearbyPlayer.getName() + " 发送假光源方块更新");
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         playerTorches.put(player.getUniqueId(), torchLoc);
@@ -325,8 +398,16 @@ public class mobilelight extends JavaPlugin implements Listener {
     private void removeTorch(Player player) {
         Location torchLoc = playerTorches.remove(player.getUniqueId());
         if (torchLoc != null) {
-            // 发送真实的方块状态给玩家
-            player.sendBlockChange(torchLoc, torchLoc.getBlock().getBlockData());
+            // 获取玩家所在64格半径内的所有玩家
+            for (Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
+                if (nearbyPlayer.getWorld().equals(torchLoc.getWorld()) && 
+                    nearbyPlayer.getLocation().distance(torchLoc) <= 64) {
+                    // 发送真实的方块状态给玩家
+                    Block block = torchLoc.getBlock();
+                    nearbyPlayer.sendBlockChange(torchLoc, block.getBlockData());
+                    debugLog("向玩家 " + nearbyPlayer.getName() + " 发送真实方块更新");
+                }
+            }
             debugLog("玩家 " + player.getName() + " 移除了光源");
         }
     }
