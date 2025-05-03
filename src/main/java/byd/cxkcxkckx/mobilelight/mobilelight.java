@@ -271,15 +271,10 @@ public class mobilelight extends JavaPlugin implements Listener {
         // 获取玩家背后的位置（根据玩家朝向）
         double distance = 1.0; // 火把距离玩家的距离（负数表示在背后）
         
-        // 将玩家朝向转换为四个主要方向（0=南, 90=西, 180=北, 270=东）
         double yaw = loc.getYaw();
-        while (yaw < 0) yaw += 360;
-        while (yaw >= 360) yaw -= 360;
+        double snapYaw = 0; // 初始化snapYaw变量
         
-        // 将朝向转换为最近的90度角（确保只有四个主要方向）
-        double snapYaw = Math.round(yaw / 90.0) * 90.0;
-        
-        // 如果朝向在45度到135度之间，使用270度（东）
+        // 如果朝向在45度到135度之间，使用90度（西）
         if (yaw > 45 && yaw <= 135) {
             snapYaw = 90;
         }
@@ -287,7 +282,7 @@ public class mobilelight extends JavaPlugin implements Listener {
         else if ((yaw > 135 && yaw <= 180) || (yaw >= -180 && yaw <= -135)) {
             snapYaw = 180;
         }
-        // 如果朝向在-135度到-45度之间，使用90度（西）
+        // 如果朝向在-135度到-45度之间，使用270度（东）
         else if (yaw > -135 && yaw <= -45) {
             snapYaw = 270;
         }
