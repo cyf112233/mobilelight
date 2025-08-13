@@ -43,11 +43,12 @@ public class mobilelight extends JavaPlugin implements Listener {
         // 从配置中读取调试模式设置
         debugMode = getConfig().getBoolean("debug-mode", false);
         // 检查服务器版本（基于MC主次版本，避免1.21.8被误判为1.8）
-        String mcVersion = Bukkit.getMinecraftVersion(); // 例如: 1.21.8 或 1.17.1
+        String bukkitVersion = getServer().getBukkitVersion(); // 例如: 1.21.3-R0.1-SNAPSHOT
+        String mcVersion = bukkitVersion.split("-")[0]; // 取去掉后缀的纯MC版本号，如 1.21.3
         int[] parts = parseMcVersion(mcVersion);
         // 1.16及以下为老版本（Material.LIGHT 从 1.17 才有）
         isLegacyVersion = (parts[0] < 1) || (parts[0] == 1 && parts[1] <= 16);
-        debugLog("Minecraft 版本: " + mcVersion + "，是否老版本: " + isLegacyVersion);
+        debugLog("Minecraft 版本: " + mcVersion + "，是否老版本: " + isLegacyVersion + "（Bukkit: " + bukkitVersion + "）");
         
         // 只在非低版本服务器初始化ViaVersion
         if (!isLegacyVersion && getServer().getPluginManager().getPlugin("ViaVersion") != null) {
