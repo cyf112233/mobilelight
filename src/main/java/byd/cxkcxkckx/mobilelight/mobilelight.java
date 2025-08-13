@@ -42,14 +42,12 @@ public class mobilelight extends JavaPlugin implements Listener {
         saveDefaultConfig();
         // 从配置中读取调试模式设置
         debugMode = getConfig().getBoolean("debug-mode", false);
-        // 检查服务器版本
-        String version = getServer().getBukkitVersion();
-        isLegacyVersion = version.contains("1.16") || version.contains("1.15") || 
-                         version.contains("1.14") || version.contains("1.13") || 
-                         version.contains("1.12") || version.contains("1.11") || 
-                         version.contains("1.10") || version.contains("1.9") || 
-                         version.contains("1.8");
-        debugLog("服务器版本: " + version + ", 是否老版本: " + isLegacyVersion);
+        // 检查服务器版本（基于MC主次版本，避免1.21.8被误判为1.8）
+        String mcVersion = Bukkit.getMinecraftVersion(); // 例如: 1.21.8 或 1.17.1
+        int[] parts = parseMcVersion(mcVersion);
+        // 1.16及以下为老版本（Material.LIGHT 从 1.17 才有）
+        isLegacyVersion = (parts[0] < 1) || (parts[0] == 1 && parts[1] <= 16);
+        debugLog("Minecraft 版本: " + mcVersion + "，是否老版本: " + isLegacyVersion);
         
         // 只在非低版本服务器初始化ViaVersion
         if (!isLegacyVersion && getServer().getPluginManager().getPlugin("ViaVersion") != null) {
@@ -84,6 +82,27 @@ public class mobilelight extends JavaPlugin implements Listener {
         if (debugMode) {
             getLogger().info(message);
         }
+    }
+
+    // 解析 Minecraft 版本号为 [major, minor, patch]，例如 "1.21.8-SNAPSHOT" -> [1, 21, 8]
+    private int[] parseMcVersion(String v) {
+        if (v == null || v.isEmpty()) {
+            return new int[] {1, 0, 0};
+        }
+        // 去掉诸如 "-R0.1-SNAPSHOT" 等后缀
+        String clean = v.split("-")[0];
+        String[] nums = clean.split("\\.");
+        int major = 0, minor = 0, patch = 0;
+        try {
+            if (nums.length > 0) major = Integer.parseInt(nums[0]);
+        } catch (NumberFormatException ignored) {}
+        try {
+            if (nums.length > 1) minor = Integer.parseInt(nums[1]);
+        } catch (NumberFormatException ignored) {}
+        try {
+            if (nums.length > 2) patch = Integer.parseInt(nums[2]);
+        } catch (NumberFormatException ignored) {}
+        return new int[] { major, minor, patch };
     }
 
     private void sendFakeLightBlock(Player player, Location location) {
